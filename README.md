@@ -140,4 +140,5 @@
 ## 参考
 
 - [ComfyUI](https://github.com/comfyanonymous/ComfyUI)
+- [ComfyUI-Light-Tool](https://github.com/ihmily/ComfyUI-Light-Tool)
 - [MIT 许可证](https://opensource.org/licenses/MIT)

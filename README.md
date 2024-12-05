@@ -7,6 +7,10 @@
 
 **ComfyUI-Seed-Nodes** 是一个为 [ComfyUI](https://github.com/comfyanonymous/ComfyUI) 提供自定义节点的集合。这些节点扩展了 ComfyUI 的功能，提供了高级图像处理能力，如图像像素化和多图像加载。
 
+## 演示
+![演示图片](./images/单图像素化.png)
+![演示图片](./images/批量像素化.png)
+
 ## 功能
 
 - **LoadImage**: 加载单张图像，支持可选的 alpha 通道保留。

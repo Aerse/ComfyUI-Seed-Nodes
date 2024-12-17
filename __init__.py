@@ -1,3 +1,4 @@
+from .nodes.image_to_3d import ImageTo3DNode
 from .nodes.load_image import LoadImage
 from .nodes.image_pixelator import ImagePixelatorNode
 from .nodes.load_multiple_images import LoadMultipleImages
@@ -9,6 +10,7 @@ NODE_CLASS_MAPPINGS = {
     "Seed-Nodes: ImagePixelator": ImagePixelatorNode,
     "Seed-Nodes: LoadMultipleImages": LoadMultipleImages,
     "Seed-Nodes: SLICPixelator": SLICPixelatorNode,
+    "Seed-Nodes: ImageTo3D": ImageTo3DNode,
 }
 
 # 定义节点在 ComfyUI 中的显示名称
@@ -17,4 +19,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Seed-Nodes: ImagePixelator": "Seed-Nodes: ImagePixelator",
     "Seed-Nodes: LoadMultipleImages": "Seed-Nodes: LoadMultipleImages",
     "Seed-Nodes: SLICPixelator": "Seed-Nodes: SLICPixelator",
+    "Seed-Nodes: ImageTo3D": "Seed-Nodes: ImageTo3D",
 }

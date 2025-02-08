@@ -145,7 +145,7 @@ class SeedSaveAudio:
 
             results.append({
                 "filename": file,
-                "subfolder": subfolder,
+                "subfolder": "audio",
                 "type": self.type
             })
             counter += 1

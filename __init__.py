@@ -5,6 +5,7 @@ from .nodes.load_multiple_images import LoadMultipleImages
 from .nodes.image_slic_pixelator import SLICPixelatorNode
 from .nodes.seed_save_audio import SeedSaveAudio
 from .nodes.image_transparency_crop import ImageTransparencyCropNode
+from .nodes.qwen_vl_api import QwenVLAPINode
 
 # 映射节点类到其在 ComfyUI 中的显示名称
 NODE_CLASS_MAPPINGS = {
@@ -15,6 +16,7 @@ NODE_CLASS_MAPPINGS = {
     "Seed-Nodes: ImageTo3D": ImageTo3DNode,
     "Seed-Nodes: SeedSaveAudio": SeedSaveAudio,
     "Seed-Nodes: ImageTransparencyCrop": ImageTransparencyCropNode,
+    "Seed-Nodes: QwenVLAPI": QwenVLAPINode,
 }
 
 # 定义节点在 ComfyUI 中的显示名称
@@ -26,4 +28,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Seed-Nodes: ImageTo3D": "Seed-Nodes: ImageTo3D",
     "Seed-Nodes: SeedSaveAudio": "Seed-Nodes: SeedSaveAudio",
     "Seed-Nodes: ImageTransparencyCrop": "Seed-Nodes: ImageTransparencyCrop",
+    "Seed-Nodes: QwenVLAPI": "Seed-Nodes: QwenVLAPI",
 }

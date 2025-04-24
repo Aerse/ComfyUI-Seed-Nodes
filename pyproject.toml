@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-seed-nodes"
+description = "ComfyUI-Seed-Nodes is a custom node library that extends the functionality of ComfyUI, offering advanced image loading and pixelation tools."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["pillow", "numpy", "torch", "torchvision", "opencv-contrib-python"]
+
+[project.urls]
+Repository = "https://github.com/Aerse/ComfyUI-Seed-Nodes"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-Seed-Nodes"
+Icon = ""

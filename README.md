@@ -1,4 +1,3 @@
-
 # ComfyUI-Seed-Nodes
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -17,6 +16,7 @@
 - **LoadMultipleImages**: 从指定目录加载多张图像。
 - **ImagePixelator**: 根据指定的像素块大小对图像应用像素化效果。
 - **SLICPixelator**: 使用 SLIC（Simple Linear Iterative Clustering）算法进行高级图像像素化处理。
+- **ScreenModeRemoveBlack**: Screen模式去黑底节点，模拟Photoshop滤色叠加效果，将黑底转换为透明渐变。
 
 ## 安装
 
@@ -103,6 +103,28 @@
 
 **输出:**
 - `image`: 像素化后的图像张量。
+
+### ScreenModeRemoveBlack 节点
+
+**ScreenModeRemoveBlack** 节点模拟Photoshop的滤色叠加效果，智能去除图像黑底并转换为透明渐变。
+
+**输入:**
+- `image`: 输入图像张量。
+- `brightness_boost`: 亮度增强倍数 (1.0-2.0，默认1.3)，提升整体亮度。
+
+**输出:**
+- `image`: 处理后的RGBA图像，黑底转换为透明。
+
+**特点:**
+- 🎯 **极简设计**: 只需调整一个参数
+- 🚀 **高效处理**: 算法优化，适合批量序列帧
+- 🎨 **自然效果**: 固定0.8对比度参数，产生最佳渐变效果
+
+**使用场景:**
+- 序列帧特效合成
+- 粒子效果叠加
+- 光效处理
+- 火焰、爆炸等特效处理
 
 ## 示例
 

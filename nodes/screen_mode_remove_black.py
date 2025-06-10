@@ -41,16 +41,6 @@ class ScreenModeRemoveBlackNode:
         return {
             "required": {
                 "image": ("IMAGE",),
-                "brightness_boost": (
-                    "FLOAT", 
-                    {
-                        "default": 1.3,
-                        "min": 1.0,
-                        "max": 2.0,
-                        "step": 0.1,
-                        "display": "slider",
-                    }
-                ),
             },
         }
 
@@ -58,15 +48,20 @@ class ScreenModeRemoveBlackNode:
     RETURN_NAMES = ("image",)
     FUNCTION = "screen_mode_process"
     CATEGORY = "ComfyUI-Seed-Nodes"
-    DESCRIPTION = "Screen模式去黑底 - 模拟Photoshop滤色叠加效果，将黑底转换为透明渐变"
+    DESCRIPTION = "Screen模式去黑底 - 获取RGB三通道数据，按顺序用滤色模式合成去除黑背景"
 
-    def screen_mode_process(self, image, brightness_boost=1.3):
+    def screen_mode_process(self, image):
         """
-        使用Screen模式算法去除黑底，模拟Photoshop滤色效果
+        使用Screen模式算法去除黑底，按照指定算法实现
+
+        算法流程:
+        1. 从源图获取R,G,B三个通道各自的图像数据
+        2. 每个通道数据都带alpha通道(使用通道值作为alpha)
+        3. 按照R,G,B顺序用滤色模式合成
+        4. 最终得到去掉黑背景的透明PNG
 
         参数:
             image (torch.Tensor): 输入图像张量
-            brightness_boost (float): 亮度增强倍数 (1.0-2.0)
 
         返回:
             tuple: 处理后的图像张量
@@ -87,7 +82,7 @@ class ScreenModeRemoveBlackNode:
         # 逐批次处理图像
         for b in range(batch_size):
             img_data = image_cpu[b].numpy()
-            processed_img = self._apply_screen_mode(img_data, brightness_boost)
+            processed_img = self._apply_screen_mode(img_data)
             
             # 转换回张量
             processed_tensor = torch.from_numpy(processed_img).to(device, dtype=dtype)
@@ -96,13 +91,12 @@ class ScreenModeRemoveBlackNode:
         # 堆叠批次结果
         return (torch.stack(results, dim=0),)
 
-    def _apply_screen_mode(self, img_data, brightness_boost):
+    def _apply_screen_mode(self, img_data):
         """
-        应用Screen模式核心算法
+        应用Screen模式核心算法，按照用户描述的算法实现
 
         参数:
             img_data: 图像数据数组 (H, W, C)
-            brightness_boost: 亮度增强倍数
 
         返回:
             numpy.ndarray: 处理后的RGBA图像数据
@@ -131,25 +125,56 @@ class ScreenModeRemoveBlackNode:
         # 分离RGBA通道
         red, green, blue, alpha = img_data[:,:,0], img_data[:,:,1], img_data[:,:,2], img_data[:,:,3]
         
-        # 计算亮度值 (使用标准亮度公式)
-        luminance = 0.299 * red + 0.587 * green + 0.114 * blue
+        # 按照用户算法：
+        # 1. 获取R,G,B三个通道各自的图像数据，这些数据要带alpha通道
         
-        # Screen模式核心算法
-        # 基于亮度创建平滑的alpha通道，实现渐变透明效果
-        enhanced_luminance = np.power(luminance, 0.8)  # 增强对比度
-        new_alpha = enhanced_luminance
+        # R通道图像数据(带alpha)
+        r_data = np.zeros((height, width, 4), dtype=np.float32)
+        r_data[:,:,0] = red      # R通道
+        r_data[:,:,1] = 0        # G=0
+        r_data[:,:,2] = 0        # B=0  
+        r_data[:,:,3] = red      # Alpha使用R通道值
         
-        # 增强颜色亮度
-        red = np.clip(red * brightness_boost, 0, 1)
-        green = np.clip(green * brightness_boost, 0, 1)
-        blue = np.clip(blue * brightness_boost, 0, 1)
+        # G通道图像数据(带alpha)
+        g_data = np.zeros((height, width, 4), dtype=np.float32)
+        g_data[:,:,0] = 0        # R=0
+        g_data[:,:,1] = green    # G通道
+        g_data[:,:,2] = 0        # B=0
+        g_data[:,:,3] = green    # Alpha使用G通道值
         
-        # 组合处理结果
+        # B通道图像数据(带alpha)
+        b_data = np.zeros((height, width, 4), dtype=np.float32)
+        b_data[:,:,0] = 0        # R=0
+        b_data[:,:,1] = 0        # G=0
+        b_data[:,:,2] = blue     # B通道
+        b_data[:,:,3] = blue     # Alpha使用B通道值
+        
+        # 2. 按照R,G,B顺序用滤色模式合成
+        # 滤色公式: result = 1 - (1 - base) * (1 - blend)
+        
+        # 从黑色背景开始
         result = np.zeros((height, width, 4), dtype=np.float32)
-        result[:,:,0] = red
-        result[:,:,1] = green
-        result[:,:,2] = blue
-        result[:,:,3] = new_alpha
+        
+        # 第一步：与R通道数据滤色合成
+        result[:,:,0] = 1 - (1 - result[:,:,0]) * (1 - r_data[:,:,0])
+        result[:,:,1] = 1 - (1 - result[:,:,1]) * (1 - r_data[:,:,1])
+        result[:,:,2] = 1 - (1 - result[:,:,2]) * (1 - r_data[:,:,2])
+        # Alpha通道也用滤色模式合成
+        result[:,:,3] = 1 - (1 - result[:,:,3]) * (1 - r_data[:,:,3])
+        
+        # 第二步：与G通道数据滤色合成
+        result[:,:,0] = 1 - (1 - result[:,:,0]) * (1 - g_data[:,:,0])
+        result[:,:,1] = 1 - (1 - result[:,:,1]) * (1 - g_data[:,:,1])
+        result[:,:,2] = 1 - (1 - result[:,:,2]) * (1 - g_data[:,:,2])
+        # Alpha通道也用滤色模式合成
+        result[:,:,3] = 1 - (1 - result[:,:,3]) * (1 - g_data[:,:,3])
+        
+        # 第三步：与B通道数据滤色合成
+        result[:,:,0] = 1 - (1 - result[:,:,0]) * (1 - b_data[:,:,0])
+        result[:,:,1] = 1 - (1 - result[:,:,1]) * (1 - b_data[:,:,1])
+        result[:,:,2] = 1 - (1 - result[:,:,2]) * (1 - b_data[:,:,2])
+        # Alpha通道也用滤色模式合成
+        result[:,:,3] = 1 - (1 - result[:,:,3]) * (1 - b_data[:,:,3])
         
         return result
 
@@ -163,17 +188,21 @@ class ScreenModeRemoveBlackNode:
         return """
         🎬 Screen模式去黑底节点
         
-        功能说明:
-        • 模拟Photoshop的滤色(Screen)叠加模式
-        • 将黑色区域转换为透明渐变
-        • 产生自然的过渡效果，适合叠加合成
+        算法流程:
+        • 从源混黑背景的图上获取R,G,B三个通道各自的图像数据
+        • 这些数据一定要带alpha通道(使用通道值作为alpha)
+        • 按照R,G,B的顺序用滤色模式合成
+        • 最终得到去掉黑背景的透明PNG图
         
-        参数说明:
-        • brightness_boost: 亮度增强倍数，提升整体亮度
+        技术特点:
+        • 零参数设计，即插即用
+        • 使用真实滤色公式 1-(1-base)*(1-blend)
+        • Alpha通道也参与滤色合成
+        • 完全按照指定算法实现
         
         使用场景:
         • 序列帧特效合成
-        • 粒子效果叠加
+        • 粒子效果叠加  
         • 光效处理
         • 火焰、爆炸等特效
         """ 
